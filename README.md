@@ -31,7 +31,88 @@ biliresourcedownloader_版本号_x64-setup.exe`
 
 ## 文档
 
-WIP
+### Web UI 本机部署
+
+Web UI 适合在浏览器中临时使用本项目功能，不需要安装桌面端。由于浏览器不能直接跨域访问 B 站接口，也不能直接设置 `Cookie` 请求头，Web UI 必须通过本项目内置的 Vite 本地代理运行，不建议将 `dist` 目录直接部署到普通静态站点。
+
+1. 安装依赖
+
+   ```bash
+   npm install
+   ```
+
+   如果本机使用 Yarn，也可以执行：
+
+   ```bash
+   yarn install
+   ```
+
+2. 开发模式运行
+
+   ```bash
+   npm run dev -- --host 127.0.0.1
+   ```
+
+   默认端口为 `1420`。浏览器打开终端输出的本地地址即可使用。
+
+3. 构建并以预览模式部署
+
+   ```bash
+   npm run build
+   npm run preview -- --host 127.0.0.1 --port 4173
+   ```
+
+   访问 `http://127.0.0.1:4173/`。
+
+4. 登录与下载说明
+
+   - Web UI 的扫码登录依赖本地代理转发登录 Cookie，请保持页面从 `127.0.0.1` 或 `localhost` 的 Vite 服务访问。
+   - 批量下载目录选择依赖浏览器的 File System Access API。支持该 API 的 Chromium 系浏览器可以选择本地目录并按资源结构写入文件；不支持时会回退到浏览器默认下载目录。
+   - 桌面端 Tauri 版本仍然支持原生文件选择、下载和本地存储能力，长期使用建议优先使用桌面版。
+
+### 桌面 App 打包
+
+桌面端使用 Tauri v2 打包。打包前请先安装对应系统的 Tauri 前置依赖，包括 Rust、平台 WebView 依赖和系统构建工具；本项目的 Tauri 配置会在打包前执行 `bun run build`，因此还需要安装 Bun。
+
+1. 安装前置工具
+
+   - 安装 [Rust](https://www.rust-lang.org/tools/install)
+   - 按照 [Tauri v2 前置依赖文档](https://v2.tauri.app/start/prerequisites/) 安装当前系统所需依赖
+   - 安装 [Bun](https://bun.sh/)
+
+2. 安装前端依赖
+
+   ```bash
+   bun install
+   ```
+
+   如果使用 npm 管理依赖，也可以执行：
+
+   ```bash
+   npm install
+   ```
+
+3. 打包 App
+
+   ```bash
+   npm run buildAll
+   ```
+
+   该脚本等价于：
+
+   ```bash
+   npm run tauri build -b
+   ```
+
+4. 查看产物
+
+   打包完成后，安装包和可执行文件会输出到：
+
+   ```text
+   src-tauri/target/release/bundle/
+   ```
+
+   当前配置的 `bundle.targets` 为 `all`，Tauri 会为当前操作系统生成可用的安装包格式。跨平台安装包通常需要在对应系统上分别打包。
 
 ## 主要技术栈
 
