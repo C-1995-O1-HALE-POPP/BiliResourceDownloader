@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { globalConfig } from "../utils/globalConfig";
-import { readFile } from '@tauri-apps/plugin-fs'
+import { readFile } from '../runtime/files.ts'
 
 const backgroundImgPath = ref('')
 
@@ -14,14 +14,18 @@ watch(() => globalConfig.value.background.url, async () => {
         return
       }
 
-      const img = await readFile(path)
-      const extension = path.split('.').pop()
+      try {
+        const img = await readFile(path)
+        const extension = path.split('.').pop()
 
-      const blob = new Blob([img], { type: `image/${extension}` })
+        const blob = new Blob([img], { type: `image/${extension}` })
 
-      const url = URL.createObjectURL(blob)
+        const url = URL.createObjectURL(blob)
 
-      backgroundImgPath.value = `url(${url})`
+        backgroundImgPath.value = `url(${url})`
+      } catch {
+        backgroundImgPath.value = `url(${path})`
+      }
     }
   } else {
     backgroundImgPath.value = ''

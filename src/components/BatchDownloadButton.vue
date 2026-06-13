@@ -2,10 +2,10 @@
 import { ElMessage, FormInstance } from "element-plus";
 import type { BatchDownloadTask } from "../types.ts";
 import { pushNewTask, startDownload } from "../utils/downloadManager.ts";
-import { open } from "@tauri-apps/plugin-dialog";
 import { TreeInstance } from "element-plus/lib/components";
-import { sep } from "@tauri-apps/api/path";
 import { globalConfig } from "../utils/globalConfig.ts";
+import { download, isWebRuntime, open } from "../runtime/files.ts";
+import { sep } from "../runtime/path.ts";
 
 const props = defineProps<{
   task: (() => BatchDownloadTask) | (() => Promise<BatchDownloadTask>)
@@ -130,6 +130,19 @@ const submit = async () => {
       path: downloadConfig.path,
       files: selectedFiles
     }
+    if (isWebRuntime()) {
+      await Promise.all(finalTask.files.map(file => download(
+          file.url,
+          [finalTask.path, file.path].filter(Boolean).join(sep()),
+      )))
+      ElMessage({
+        message: `${finalTask.name}已完成浏览器下载`,
+        type: 'success',
+      })
+      showDialog.value = false
+      return
+    }
+
     await pushNewTask(finalTask)
 
     if (globalConfig.value.autoStartDownload) {
@@ -161,7 +174,7 @@ const selectSaveFolder = async () => {
     directory: true,
   })
 
-  if (path === null) return
+  if (typeof path !== 'string') return
   downloadConfig.path = path
 }
 

@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { Parser, Player } from "svga";
-import { open, save } from "@tauri-apps/plugin-dialog";
-import { download } from "@tauri-apps/plugin-upload";
 import { Video } from "svga/dist/types";
-import { invoke } from "@tauri-apps/api/core";
-import { sep } from "@tauri-apps/api/path";
+import { createDir, download, isWebRuntime, open, save, saveDataURL, webUnsupported } from "../runtime/files.ts";
+import { sep } from "../runtime/path.ts";
+import { runtimeFetch } from "../runtime/http.ts";
 
 const props = defineProps<{
   url?: string
@@ -107,7 +106,7 @@ const init = async () => {
   let dataURL: string
 
   if (props.url) {
-    const blob = await fetch(props.url).then(r => r.blob())
+    const blob = await runtimeFetch(props.url).then(r => r.blob())
     dataURL = URL.createObjectURL(blob)
   } else if (props.dataURL) {
     dataURL = props.dataURL
@@ -152,6 +151,11 @@ const saveFile = (name: string, extension: string) => {
 }
 
 const downloadSequenceImages = async () => {
+  if (isWebRuntime()) {
+    webUnsupported('导出每帧图片到本地文件夹')
+    return
+  }
+
   const name = props.downloadName ?? props.title + '序列帧'
 
   const path = await open({
@@ -163,13 +167,13 @@ const downloadSequenceImages = async () => {
 
   ElMessage('正在渲染帧数据，请稍等')
   const images = await renderSequenceImages()
-  await invoke('create_dir', { path: `${path}${sep()}${name}` })
-  const results = await Promise.all(images.map((data, index) => invoke('save_data_url', {
-    path: `${path}${sep()}${name}${sep()}图片${index + 1}.png`,
-    data,
-  })))
+  await createDir(`${path}${sep()}${name}`)
+  const results = await Promise.all(images.map((data, index) => saveDataURL(
+      `${path}${sep()}${name}${sep()}图片${index + 1}.png`,
+      data,
+  )))
 
-  if (results.some(r => r !== 'ok')) {
+  if (results.some(r => !r)) {
     ElMessage({
       message: `保存${name}时出错`,
       type: "error",
@@ -192,7 +196,7 @@ const downloadSequence = async () => {
   await renderSequence()
   const data = renderCanvasRef.value?.toDataURL() ?? ''
 
-  if (await invoke('save_data_url', { path, data }) === 'ok') {
+  if (await saveDataURL(path, data)) {
     ElMessage({
       message: `下载${name}成功！`,
       type: "success",

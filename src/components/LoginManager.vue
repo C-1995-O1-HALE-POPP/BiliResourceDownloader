@@ -10,6 +10,17 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 const qrCodeData = ref('')
 
+interface LoginState {
+  isLogin: boolean
+  uname?: string
+}
+
+const getLoginState = () => APIFetch<LoginState>(
+  'https://api.bilibili.com/x/web-interface/nav',
+  undefined,
+  { useCache: false, useCookie: true },
+)
+
 // 是否正在进行登录
 const loggingIn = ref(false)
 const login = async () => {
@@ -54,8 +65,6 @@ const login = async () => {
 
     pollResp = await APIFetch(pollURL, undefined, { useCache: false })
 
-    console.log(pollResp)
-
     if (pollResp.code !== 0) {
       console.error(pollResp)
       ElMessage({
@@ -77,16 +86,36 @@ const login = async () => {
   }
 
   if (pollResp.data.code === 0) {
-    ElMessage({
-      message: '登录成功',
-      type: 'success',
-    })
-
     const loginURL = new URL(pollResp.data.url)
     const params = loginURL.search.substring(1).split('&').join('; ')
 
     await saveLoginCookie(params)
-    userLoggedIn.value = true
+
+    try {
+      const resp = await getLoginState()
+      userLoggedIn.value = resp.data?.isLogin
+
+      if (userLoggedIn.value) {
+        ElMessage({
+          message: '登录成功，欢迎 ' + resp.data.uname,
+          type: 'success',
+        })
+      } else {
+        await clearLoginCookie()
+        ElMessage({
+          message: '扫码成功，但登录状态校验未通过，请重新登录',
+          type: 'error',
+        })
+      }
+    } catch (e) {
+      console.error(e)
+      await clearLoginCookie()
+      ElMessage({
+        message: '扫码成功，但登录状态校验失败：' + e,
+        type: 'error',
+      })
+    }
+
     loggingIn.value = false
   }
 }
@@ -105,15 +134,9 @@ emitter.on('loginDrawerOpen', async () => {
 })
 
 const testLoginState = async () => {
-  let resp: GeneralAPIResponse<{
-    isLogin: boolean
-    uname?: string
-  }>
+  let resp: GeneralAPIResponse<LoginState>
   try {
-    resp = await APIFetch<{
-      isLogin: boolean
-      uname?: string
-    }>(`https://api.bilibili.com/x/web-interface/nav`, undefined, { useCache: false, useCookie: true })
+    resp = await getLoginState()
   } catch (e) {
     if ((e as GeneralAPIResponse<unknown>).code === -101) {
       ElMessage({

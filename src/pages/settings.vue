@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { open } from "@tauri-apps/plugin-dialog";
 import { allowedImageFormats, globalConfig, resetConfig } from "../utils/globalConfig.ts";
 import { clearAPICache } from "../APIFetch.ts";
-import { invoke } from "@tauri-apps/api/core";
 import { isMobileDevice } from "../utils/deviceUtils.ts";
 import { resolveContentUri } from "../utils/deviceUtils";
+import { invokeNative, open, webUnsupported } from "../runtime/files.ts";
 
 const enoughWidth = useMediaQuery('(min-width: 640px)')
 const labelPosition = computed(() => enoughWidth.value ? 'left' : 'top')
@@ -36,7 +35,7 @@ const reset = () => {
 }
 
 const selectImg = async () => {
-  let url = await open({
+  const selected = await open({
     multiple: false,
     directory: false,
     filters: [
@@ -47,6 +46,7 @@ const selectImg = async () => {
     ]
   })
 
+  let url = Array.isArray(selected) ? selected[0] : selected
   if (!url) return
 
   // resolve content:// urls on mobile devices
@@ -64,9 +64,17 @@ const selectDownloadDir = async () => {
     directory: true,
   })
 
-  if (path === null) return null
+  if (typeof path !== 'string') return null
 
   globalConfig.value.downloadPath = path
+}
+
+const openDevtools = async () => {
+  try {
+    await invokeNative('open_webview_devtools')
+  } catch {
+    webUnsupported('打开 Tauri 开发者工具')
+  }
 }
 
 </script>
@@ -221,7 +229,7 @@ const selectDownloadDir = async () => {
       </ElButton>
       <ElButton
         type="primary"
-        @click="() => invoke('open_webview_devtools')"
+        @click="openDevtools"
       >
         启动开发者工具
       </ElButton>

@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { open } from '@tauri-apps/plugin-dialog'
-import { invoke } from "@tauri-apps/api/core";
+import { invokeNative, isWebRuntime, open, webUnsupported } from "../../runtime/files.ts";
 
 const imagePaths = ref<string[]>([])
 const converting = ref(false)
 
 const selectImages = async () => {
-  imagePaths.value = await open({
+  if (isWebRuntime()) {
+    webUnsupported('本地 WebP 批量转换')
+    return
+  }
+
+  const selected = await open({
     title: '选择webp图片',
     multiple: true,
     filters: [{
@@ -14,6 +18,7 @@ const selectImages = async () => {
       extensions: ['webp'],
     }]
   }) ?? []
+  imagePaths.value = Array.isArray(selected) ? selected : selected ? [selected] : []
 }
 
 // TODO 解决转换时卡顿问题
@@ -21,7 +26,7 @@ const selectImages = async () => {
 const convert = () => {
   converting.value = true
   Promise.all(imagePaths.value.map(p => {
-    return invoke('convert_webp2gif', {
+    return invokeNative('convert_webp2gif', {
       inputPath: p,
       outputPath: p.split('.').slice(0, -1) + '.gif',
     })

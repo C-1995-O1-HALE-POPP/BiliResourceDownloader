@@ -2,7 +2,8 @@
 import { APIFetch } from "../../APIFetch.ts";
 import { AtTextNode, BatchDownloadTask, DynamicInfo, DynamicTypes } from "../../types.ts";
 import { autoJump, resolveText } from "../../utils/linkResolver.ts";
-import { sep } from "@tauri-apps/api/path";
+import { sep } from "../../runtime/path.ts";
+import { runtimeFetch } from "../../runtime/http.ts";
 
 const loading = ref(false)
 const route = useRoute<'/dynamic/[id]'>()
@@ -164,7 +165,7 @@ const connect9Pic = async () => {
   canvas.height = h
 
   const imageBitmaps = await Promise.all(
-      pics.map(p => fetch(p.url.replace('http://', 'https://'))
+      pics.map(p => runtimeFetch(p.url.replace('http://', 'https://'))
           .then(d => d.blob())
           .then(b => createImageBitmap(b)))
   )

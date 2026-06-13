@@ -12,7 +12,7 @@ import {
   SuitDetail,
   UserDynamicList
 } from "../../types.ts";
-import { sep } from "@tauri-apps/api/path";
+import { sep } from "../../runtime/path.ts";
 import { autoJump, resolveText } from "../../utils/linkResolver.ts";
 import DebugButton from "../../components/DebugButton.vue";
 

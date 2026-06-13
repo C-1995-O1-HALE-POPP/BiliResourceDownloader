@@ -1,6 +1,6 @@
-import { LazyStore } from "@tauri-apps/plugin-store";
+import { createRuntimeStore } from "../../runtime/store.ts";
 
-const store = new LazyStore('wbi.bin')
+const store = createRuntimeStore('wbi.bin')
 
 async function clearWbiStore() {
     await store.clear()

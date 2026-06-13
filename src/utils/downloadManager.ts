@@ -1,12 +1,11 @@
 import { BatchDownloadTask } from "../types.ts";
-import { LazyStore } from '@tauri-apps/plugin-store';
-import { download } from "@tauri-apps/plugin-upload";
 import { emitter } from "../main.ts";
-import { sep } from "@tauri-apps/api/path";
-import { invoke } from "@tauri-apps/api/core";
 import { globalConfig } from "./globalConfig.ts";
+import { createRuntimeStore } from "../runtime/store.ts";
+import { createDir, download, isWebRuntime } from "../runtime/files.ts";
+import { sep } from "../runtime/path.ts";
 
-const store = new LazyStore('downloadTask.json')
+const store = createRuntimeStore('downloadTask.json')
 
 const MAX_TASKS = computed(() => globalConfig.value.maxConcurrentDownloadTasks)
 
@@ -91,7 +90,7 @@ async function startDownload() {
                 .slice(0, -1)
                 .join(sep())
 
-            await invoke('create_dir', { path: finalDirectory })
+            await createDir(finalDirectory)
 
             // 调度器，检测当前放行下载数量，只有小于 3 时 object 对象才转为 fulfilled
             const endOperate = await enableDownloadScheduler()
@@ -139,6 +138,8 @@ async function getAllDownloadTasks() {
 
 // 若批量下载未完成，自动重新发起下载
 async function continueUnfinishedDownloadTasks() {
+    if (isWebRuntime()) return
+
     if (await store.get<boolean>('downloading') === true) {
         console.debug('发现未完成下载任务，继续下载')
         await startDownload()

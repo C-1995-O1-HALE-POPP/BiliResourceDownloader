@@ -1,4 +1,5 @@
 import { router } from "../main.ts";
+import { runtimeFetch } from "../runtime/http.ts";
 
 type Types = 'liveroom' | 'user' | 'dynamic' | 'video' | 'suit' | 'lottery'
 
@@ -65,7 +66,7 @@ function resolveText(text?: string): Types | null {
 }
 
 async function resolveShortLink(url: string): Promise<string | null> {
-    const resp = await fetch(url)
+    const resp = await runtimeFetch(url)
     return resp.url
 }
 

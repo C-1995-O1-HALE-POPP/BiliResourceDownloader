@@ -1,6 +1,8 @@
+import { runtimeFetch } from "../../../runtime/http.ts";
+
 // 获取最新的 img_key 和 sub_key
 export async function getWbiKeys() {
-    const res = await fetch('https://api.bilibili.com/x/web-interface/nav', {
+    const res = await runtimeFetch('https://api.bilibili.com/x/web-interface/nav', {
         headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
             Referer: 'https://www.bilibili.com/'
@@ -16,7 +18,7 @@ export async function getWbiKeys() {
         };
     };
 
-    const htmlResp = await fetch('https://space.bilibili.com/1',).then(d => d.text())
+    const htmlResp = await runtimeFetch('https://space.bilibili.com/1',).then(d => d.text())
     const regex = /<script id="__RENDER_DATA__" type="application\/json">([^<]+)<\/script>/
 
     // 你是渲染数据吗？我觉得我是

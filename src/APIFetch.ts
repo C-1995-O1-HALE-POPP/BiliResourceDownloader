@@ -1,14 +1,14 @@
-import { LazyStore } from '@tauri-apps/plugin-store';
 import { clearLoginCookie, getLoginCookie, userLoggedIn } from "./utils/loginManager.ts";
 import { GeneralAPIResponse } from "./types.ts";
 import { encWbiWithFetch } from "./utils/wbi.ts";
 import { useWbiStore } from "./store/useWbiStore";
 import { setDebugInfo } from "./utils/debug.ts";
 import md5 from "md5";
-import { ClientOptions, fetch } from "@tauri-apps/plugin-http";
 import { globalConfig } from "./utils/globalConfig.ts";
+import { createRuntimeStore } from "./runtime/store.ts";
+import { runtimeFetch } from "./runtime/http.ts";
 
-const store = new LazyStore('APIResponseCache', {
+const store = createRuntimeStore('APIResponseCache', {
     // 不要持久化请求缓存
     autoSave: false
 })
@@ -94,7 +94,7 @@ async function APIFetch<T>(url: URL | string, init?: RequestInit, extraOptions?:
         cookie = await getLoginCookie()
     }
 
-    const options: RequestInit & ClientOptions = {
+    const options: RequestInit = {
         headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:131.0) Gecko/20100101 Firefox/131.0',
             // 无cookie时，填写这几个参数貌似也能过一些验证
@@ -110,7 +110,7 @@ async function APIFetch<T>(url: URL | string, init?: RequestInit, extraOptions?:
     let json: GeneralAPIResponse<T>
 
     do {
-        json = await fetch(parsedURL, finalOptions).then(r => r.json()) as GeneralAPIResponse<T>
+        json = await runtimeFetch(parsedURL, finalOptions).then(r => r.json()) as GeneralAPIResponse<T>
 
         if (json.code !== 0) {
             if ((json.code === -352 || json.code === -403) && retryCount < 1) {

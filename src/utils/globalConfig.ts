@@ -1,8 +1,8 @@
 import { getDownloadPath } from "./deviceUtils.ts";
-import { LazyStore } from "@tauri-apps/plugin-store";
 import { ref, watch } from 'vue';
+import { createRuntimeStore } from "../runtime/store.ts";
 
-const store = new LazyStore('config.json');
+const store = createRuntimeStore('config.json');
 
 const DEFAULT_CONFIG = {
     showDebugButton: true,

@@ -1,7 +1,7 @@
-import { LazyStore } from "@tauri-apps/plugin-store";
 import { clearAPICache } from "../APIFetch.ts";
+import { createRuntimeStore } from "../runtime/store.ts";
 
-const store = new LazyStore('login.json')
+const store = createRuntimeStore('login.json')
 
 const userLoggedIn = ref(false)
 

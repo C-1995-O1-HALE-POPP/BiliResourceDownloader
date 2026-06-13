@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { download } from '@tauri-apps/plugin-upload'
-import { save } from '@tauri-apps/plugin-dialog'
-import { invoke } from "@tauri-apps/api/core";
+import { download, save, saveDataURL } from "../runtime/files.ts";
 
 const props = defineProps<{
   image?: string
@@ -18,9 +16,6 @@ const props = defineProps<{
   suffix?: string
 }>()
 
-const saveDataURL = async (path: string, data: string) => {
-  return await invoke('save_data_url', { path, data }) === 'ok'
-}
 const downloadFile = async (url: string) => {
   const suffix = props.suffix ?? url.split('?')[0].split('.').pop() ?? ''
   const name = (props.downloadName ?? props.title) + '.' + suffix

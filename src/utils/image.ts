@@ -1,8 +1,8 @@
-import { invoke } from "@tauri-apps/api/core";
 import { EmojiImage } from "../types.ts";
+import { invokeNative } from "../runtime/files.ts";
 
 const convertWebp2Gif = async (inputFile: string, outputFile: string) => {
-    await invoke('convert_webp2gif', { inputFile, outputFile })
+    await invokeNative('convert_webp2gif', { inputFile, outputFile })
 }
 
 const formatToUrl = (format: string, emoji: EmojiImage): string => {

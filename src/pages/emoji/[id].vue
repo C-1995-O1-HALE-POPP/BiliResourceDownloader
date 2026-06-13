@@ -8,7 +8,7 @@ import {
   SuitEmojiPackageProperties
 } from "../../types.ts";
 import { autoJump, resolveText } from "../../utils/linkResolver.ts";
-import { sep } from "@tauri-apps/api/path";
+import { sep } from "../../runtime/path.ts";
 import { UnwrapRef } from "vue";
 import { formatToUrl } from "../../utils/image.ts";
 import { allowedImageFormats, globalConfig } from "../../utils/globalConfig.ts";

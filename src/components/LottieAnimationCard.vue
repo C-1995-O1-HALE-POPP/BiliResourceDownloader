@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { open, save } from "@tauri-apps/plugin-dialog";
-import { download } from "@tauri-apps/plugin-upload";
 import Lottie, { AnimationItem } from "lottie-web";
-import { invoke } from "@tauri-apps/api/core";
-import { sep } from "@tauri-apps/api/path";
+import { createDir, download, isWebRuntime, open, save, saveDataURL, webUnsupported } from "../runtime/files.ts";
+import { sep } from "../runtime/path.ts";
+import { runtimeFetch } from "../runtime/http.ts";
 
 const props = defineProps<{
   url?: string
@@ -31,7 +30,7 @@ const init = async () => {
   let json: unknown
 
   if (props.url) {
-    json = await fetch(props.url).then(r => r.json())
+    json = await runtimeFetch(props.url).then(r => r.json())
   } else if (props.json) {
     json = props.json
   } else {
@@ -116,6 +115,11 @@ const downloadLottie = async () => {
 }
 
 const downloadAllFrames = async () => {
+  if (isWebRuntime()) {
+    webUnsupported('导出所有帧到本地文件夹')
+    return
+  }
+
   if (!animationInfo.value || !player.value) return
   playing.value = false
 
@@ -141,13 +145,13 @@ const downloadAllFrames = async () => {
     allData.push(canvas.toDataURL())
   }
 
-  await invoke('create_dir', { path: `${path}${sep()}${name}` })
-  const results = await Promise.all(allData.map((data, index) => invoke('save_data_url', {
-    path: `${path}${sep()}${name}${sep()}图片${index + 1}.png`,
-    data,
-  })))
+  await createDir(`${path}${sep()}${name}`)
+  const results = await Promise.all(allData.map((data, index) => saveDataURL(
+      `${path}${sep()}${name}${sep()}图片${index + 1}.png`,
+      data,
+  )))
 
-  if (results.some(r => r !== 'ok')) {
+  if (results.some(r => !r)) {
     ElMessage({
       message: `保存${name}时出错`,
       type: "error",
@@ -180,7 +184,7 @@ const downloadCurrentFrame = async () => {
     return
   }
 
-  if (await invoke('save_data_url', { path, data }) === 'ok') {
+  if (await saveDataURL(path, data)) {
     ElMessage({
       message: `下载${name}成功！`,
       type: "success",

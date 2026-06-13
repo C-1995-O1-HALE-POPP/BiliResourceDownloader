@@ -1,9 +1,12 @@
-import { downloadDir } from "@tauri-apps/api/path";
-import { platform } from "@tauri-apps/plugin-os";
+import { downloadDir } from "../runtime/path.ts";
+import { isTauriRuntime } from "../runtime/environment.ts";
 
 const isMobileDevice = () => {
-  const plat = platform();
-  return plat === "android" || plat === "ios";
+  if (isTauriRuntime()) {
+    const ua = navigator.userAgent.toLowerCase()
+    return ua.includes('android') || /iphone|ipad|ipod/.test(ua)
+  }
+  return /android|iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase())
 };
 
 const getDownloadPath = async (): Promise<string> => {

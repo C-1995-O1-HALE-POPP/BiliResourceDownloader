@@ -8,7 +8,7 @@ import {
   LiveroomEmojiListInfo
 } from "../../types.ts";
 import { userLoggedIn } from "../../utils/loginManager.ts";
-import { sep } from "@tauri-apps/api/path";
+import { sep } from "../../runtime/path.ts";
 
 const route = useRoute<'/liveroom/[id]'>()
 const loading = ref(false)

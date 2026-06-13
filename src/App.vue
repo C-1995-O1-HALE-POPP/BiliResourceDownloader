@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { emitter } from "./main.ts"
-import { getCurrentWindow } from "@tauri-apps/api/window"
 import Icon from '../src-tauri/icons/icon.png'
 import { globalConfig } from "./utils/globalConfig.ts";
 import AppBackground from "./components/AppBackground.vue";
 import { isMobileDevice } from "./utils/deviceUtils.ts";
+import { getCurrentAppWindow } from "./runtime/window.ts";
 
 
-const window = getCurrentWindow()
+const window = getCurrentAppWindow()
 const showDownloadDrawer = ref(false)
 const showLoginDrawer = ref(false)
 

@@ -10,7 +10,7 @@ import type {
   MedalInfo,
   RedeemInfo,
 } from '../types.ts'
-import { sep } from "@tauri-apps/api/path";
+import { sep } from "../runtime/path.ts";
 import { CarouselInstance } from "element-plus/lib/components";
 
 const loading = ref(true)
